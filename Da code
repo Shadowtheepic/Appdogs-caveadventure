@@ -1,0 +1,141 @@
+import pygame #handles graphics, sound, game timings, keyboard input, etc
+import random
+pygame.init()
+
+#Pipe Class################################################
+class pipe:
+    def __init__(self, xpos, gap):
+        self.xpos = xpos
+        self.gap = gap
+        
+    def move(self): 
+        self.xpos -=1
+     
+    def draw(self):
+        if self.gap == 1:
+          pygame.draw.rect(screen, (200,200,0), (self.xpos, 0, 40, 200))#top pipe
+          pygame.draw.rect(screen, (200,200,0), (self.xpos, 300, 40, 200))#bottom pipe
+        if self.gap == 2:
+          pygame.draw.rect (screen, (100,200,100), (self.xpos, 0 ,40, 150))
+          pygame.draw.rect(screen, (100,200,100), (self.xpos, 250,40, 250))
+        if self.gap ==3: #middle pipe
+          pygame.draw.rect (screen, (0,200,200), (self.xpos, 0 ,40, 250))
+          pygame.draw.rect (screen, (0,200,200), (self.xpos, 350 ,40, 250))
+    def reset(self):
+        if self.xpos + 40 < 0:
+          self.xpos = 500 + random.randint(1,10)
+          self.gap = random.randint(1,3)
+    def collide (self, birdX, birdY):
+        if self.gap == 1:
+           if (birdX + 50 > self.xpos and self.xpos + 40 > birdX) and (birdY + 50 > 300 or birdY < 200):
+              return True
+           else:
+              return False
+
+        elif self.gap == 2:
+           if (birdX + 50 > self.xpos and self.xpos + 40> birdX) and (birdY + 50 > 250 or birdY < 150):
+              return True
+           else:
+              return False
+        elif self.gap == 3:
+           if (birdX + 50 > self.xpos and self.xpos + 40> birdX) and (birdY + 50 > 350 or birdY < 250):
+              return True
+           else:
+              return False
+        else:
+          return False
+        
+#end Pipe Class############################################
+
+#these three variables were missing, added by Mo. pipes is the array we're holding the pipe objects inside, so you have to set it up first. "numpipes" is just an int that tells the for loop below how many times to run (and therefore how many pipes to make)
+pipes = list()
+numpipes = 5
+collision = False
+
+#these two lines were inside your class definition. You want them outside of the class definition and inside "main" (python doesn't really have a main function, but this is kinda where it would be). At this point you're USING the class definition to instantiate (stamp) the template of che class a bunch of times. That's why you don't want this IN the class definition
+for i in range(numpipes):
+  pipes.append(pipe(500+i*100, random.randint(1,3)))
+
+#creates game screen and caption
+screen = pygame.display.set_mode((500, 500))
+pygame.display.set_caption("Flappy bruh")
+
+#game variables
+doExit = False #variable to quit out of game loop
+clock = pygame.time.Clock() #sets up a game clock to regulate game speed
+
+#birb variables
+xPos = 100
+yPos = 0
+xVel = 0
+yVel = 0
+
+
+background = pygame.image.load("vibes.png")
+BackgroundRect = background.get_rect(topleft = (0,0))
+appdog = pygame.image.load("appdog.jpg")
+
+appdog = pygame.transform.scale(appdog, (50, 50))
+
+#BEGIN GAME LOOP######################################################
+while not doExit:
+   
+    clock.tick(60) #FPS (frames per second)
+   
+    #pygame's way of listening for events (key presses, mouse clicks, etc)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+           doExit = True #lets you quit program
+
+    #keyboard input
+    keys = pygame.key.get_pressed()
+    x,y = pygame.mouse.get_pos()
+
+    yPos = y - 25
+    xPos = x - 25
+
+    #if keys [pygame.K_UP]:    
+        #yVel -= .6 #flap up
+   # else:
+       # yVel += .1 #gravity!
+   # if yPos < 0:
+      #  yPos = 0
+      #  yVel = 0
+   # if yPos > 500:
+     #   yPos = 500
+      #  yVel = 0
+    
+    #make gravity or jump velocity impact position    
+    yPos += yVel
+    xPos += xVel
+    
+    if collision is False:
+        for i in range(numpipes):
+            pipes[i].move()
+            pipes[i].reset()
+    #check collision
+    for i in range(numpipes):
+        collision = pipes[i]. collide(xPos, yPos)
+        if collision == True:
+            break
+    
+    #render (drawing) section-----------------------------------
+    if collision is False:
+        screen.blit(background, BackgroundRect)
+    else:
+        screen.fill((250, 100, 100))
+    
+     #wipe screen (without this, things smear)
+    
+
+    for i in range(numpipes):
+         pipes[i].draw()
+    #draw birb
+    screen.blit(appdog, (xPos, yPos))
+   
+   
+
+    pygame.display.flip() #update graphics each game loop
+
+#END GAME LOOP#######################################################
+pygame.quit()
